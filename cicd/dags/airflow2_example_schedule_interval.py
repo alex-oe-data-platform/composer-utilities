@@ -12,23 +12,31 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from airflow import DAG
-from airflow.operators.dummy_operator import DummyOperator
-from airflow.utils.dates import days_ago
+import datetime
 
-# Airflow 3 Breaking Changes demonstrated here:
-# 1. schedule_interval argument is removed in Airflow 3. Use schedule instead.
-# 2. airflow.utils.dates.days_ago is removed in Airflow 3.
-# 3. DummyOperator from airflow.operators.dummy_operator is removed in Airflow 3.
+from airflow import DAG
+from airflow.operators.empty import EmptyOperator
+
+# Optimized DAG adhering to Airflow best practices:
+# 1. Use `schedule` parameter instead of deprecated `schedule_interval`
+# 2. Use static start_date (datetime.datetime with UTC timezone) instead of days_ago()
+# 3. Use EmptyOperator instead of removed DummyOperator
+# 4. Remove top-level print statements / side effects
+# 5. Define default_args with retries and retry_delay
+default_args = {
+    "retries": 2,
+    "retry_delay": datetime.timedelta(minutes=5),
+}
+
 with DAG(
     dag_id="airflow2_example_schedule_interval",
-    schedule_interval="@daily",
-    start_date=days_ago(2),
+    schedule="@daily",
+    start_date=datetime.datetime(2024, 1, 1, tzinfo=datetime.timezone.utc),
     catchup=False,
+    default_args=default_args,
     tags=["airflow2", "compatibility_test"],
 ) as dag:
-    start = DummyOperator(task_id="start_task")
-    print("Trigger CI/CD :D")
-    end = DummyOperator(task_id="end_task")
+    start = EmptyOperator(task_id="start_task")
+    end = EmptyOperator(task_id="end_task")
 
     start >> end
