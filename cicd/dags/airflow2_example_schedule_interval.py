@@ -28,7 +28,7 @@ with DAG(
     tags=["airflow2", "compatibility_test"],
 ) as dag:
     start = DummyOperator(task_id="start_task")
-
+    print("Trigger CI/CD :D")
     end = DummyOperator(task_id="end_task")
 
     start >> end
